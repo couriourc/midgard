@@ -1,0 +1,37 @@
+version: '3.8'
+
+# 开发环境配置
+# 使用: docker-compose -f docker-compose.dev.yml up
+
+services:
+  memcached:
+    image: memcached:1.6
+    container_name: midgard-memcached-dev
+    ports:
+      - "11211:11211"
+    networks:
+      - midgard-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: midgard-postgres-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: midgard
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+    networks:
+      - midgard-network
+    profiles:
+      - postgres
+
+volumes:
+  postgres-data-dev:
+
+networks:
+  midgard-network:
+    driver: bridge
+

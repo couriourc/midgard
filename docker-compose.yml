@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: midgard-traefik
+    command:
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+    ports:
+      - "80:80"
+      - "8081:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - midgard-network
+
+  memcached:
+    image: memcached:1.6
+    container_name: midgard-memcached
+    ports:
+      - "11211:11211"
+    networks:
+      - midgard-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: midgard-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: midgard
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - midgard-network
+    profiles:
+      - postgres
+
+  midgard:
+    build:
+      context: .
+      args:
+        ENABLE_FRONTEND: "true"  # Set to "false" to disable frontend
+    container_name: midgard-gateway
+    depends_on:
+      - traefik
+      - memcached
+    environment:
+      - PORT=8080
+      - MEMCACHED_HOST=memcached
+      - MEMCACHED_PORT=11211
+      - DATABASE_TYPE=sqlite
+      - DATABASE_DSN=/app/data/midgard.db
+      - ENABLE_FRONTEND=true  # Can be overridden at runtime
+      # For PostgreSQL, uncomment and comment SQLite:
+      # - DATABASE_TYPE=postgres
+      # - DATABASE_HOST=postgres
+      # - DATABASE_PORT=5432
+      # - DATABASE_USER=postgres
+      # - DATABASE_PASSWORD=postgres
+      # - DATABASE_DBNAME=midgard
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.midgard.rule=Host(`midgard.localhost`)"
+      - "traefik.http.routers.midgard.entrypoints=web"
+    networks:
+      - midgard-network
+
+volumes:
+  postgres-data:
+
+networks:
+  midgard-network:
+    driver: bridge

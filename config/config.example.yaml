@@ -1,0 +1,29 @@
+# Midgard Gateway 配置文件示例
+# 复制此文件为 config.yaml 并根据需要修改
+
+server:
+  port: 8080
+
+database:
+  type: sqlite
+  dsn: midgard.db
+  # For PostgreSQL, use:
+  # type: postgres
+  # host: localhost
+  # port: 5432
+  # user: postgres
+  # password: postgres
+  # dbname: midgard
+
+memcached:
+  host: localhost
+  port: 11211
+
+log:
+  level: info
+  max_entries: 1000
+  rolling: true
+
+# Enable frontend UI (set to false for API-only mode)
+enable_frontend: true
+

@@ -1,0 +1,49 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Development files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Node modules (will be installed in container)
+web/node_modules
+web/dist
+
+# Go build artifacts
+midgard
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test files
+*_test.go
+testdata
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+
+# Data directory
+data/
+
+# Docker files
+docker-compose.yml
+Dockerfile
+.dockerignore
