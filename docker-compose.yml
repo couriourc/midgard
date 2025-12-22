@@ -17,13 +17,16 @@ services:
     networks:
       - midgard-network
 
-  memcached:
-    image: memcached:1.6
-    container_name: midgard-memcached
+  redis:
+    image: redis:7-alpine
+    container_name: midgard-redis
     ports:
-      - "11211:11211"
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
     networks:
       - midgard-network
+    command: redis-server --appendonly yes
 
   postgres:
     image: postgres:15-alpine
@@ -49,21 +52,24 @@ services:
     container_name: midgard-gateway
     depends_on:
       - traefik
-      - memcached
+      - redis
     environment:
       - PORT=8080
-      - MEMCACHED_HOST=memcached
-      - MEMCACHED_PORT=11211
-      - DATABASE_TYPE=sqlite
-      - DATABASE_DSN=/app/data/midgard.db
-      - ENABLE_FRONTEND=true  # Can be overridden at runtime
-      # For PostgreSQL, uncomment and comment SQLite:
-      # - DATABASE_TYPE=postgres
-      # - DATABASE_HOST=postgres
-      # - DATABASE_PORT=5432
-      # - DATABASE_USER=postgres
-      # - DATABASE_PASSWORD=postgres
-      # - DATABASE_DBNAME=midgard
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DB=0
+#      - DATABASE_TYPE=sqlite
+#      - DATABASE_DSN=/app/data/midgard.db
+      - ENABLE_FRONTEND=true
+        # Can be overridden at runtime
+        # For PostgreSQL, uncomment and comment SQLite:
+      - DATABASE_TYPE=postgres
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_DBNAME=midgard
     volumes:
       - ./config:/app/config
       - ./data:/app/data
@@ -76,6 +82,7 @@ services:
 
 volumes:
   postgres-data:
+  redis-data:
 
 networks:
   midgard-network:

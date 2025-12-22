@@ -12,7 +12,7 @@ import (
 type Config struct {
 	Server        ServerConfig    `mapstructure:"server"`
 	Database      DatabaseConfig  `mapstructure:"database"`
-	Memcached     MemcachedConfig `mapstructure:"memcached"`
+	Redis         RedisConfig     `mapstructure:"redis"`
 	Log           LogConfig       `mapstructure:"log"`
 	EnableFrontend bool           `mapstructure:"enable_frontend"`
 }
@@ -31,9 +31,11 @@ type DatabaseConfig struct {
 	DSN      string `mapstructure:"dsn"` // For SQLite, this is the file path
 }
 
-type MemcachedConfig struct {
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
+type RedisConfig struct {
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Password string `mapstructure:"password"`
+	DB       int    `mapstructure:"db"` // Redis database number (default 0)
 }
 
 type LogConfig struct {
@@ -80,9 +82,11 @@ func LoadConfig() *Config {
 				Type: "sqlite",
 				DSN:  "midgard.db",
 			},
-			Memcached: MemcachedConfig{
-				Host: "localhost",
-				Port: 11211,
+			Redis: RedisConfig{
+				Host:     "localhost",
+				Port:     6379,
+				Password: "",
+				DB:       0,
 			},
 			Log: LogConfig{
 				Level:      "info",
@@ -115,9 +119,11 @@ func bindEnvVars() {
 	viper.BindEnv("database.dbname", "DATABASE_DBNAME")
 	viper.BindEnv("database.dsn", "DATABASE_DSN")
 	
-	// Memcached config
-	viper.BindEnv("memcached.host", "MEMCACHED_HOST")
-	viper.BindEnv("memcached.port", "MEMCACHED_PORT")
+	// Redis config
+	viper.BindEnv("redis.host", "REDIS_HOST")
+	viper.BindEnv("redis.port", "REDIS_PORT")
+	viper.BindEnv("redis.password", "REDIS_PASSWORD")
+	viper.BindEnv("redis.db", "REDIS_DB")
 	
 	// Log config
 	viper.BindEnv("log.level", "LOG_LEVEL")
@@ -153,11 +159,17 @@ func bindEnvVars() {
 	if dbname := os.Getenv("DATABASE_DBNAME"); dbname != "" {
 		viper.Set("database.dbname", dbname)
 	}
-	if memcachedHost := os.Getenv("MEMCACHED_HOST"); memcachedHost != "" {
-		viper.Set("memcached.host", memcachedHost)
+	if redisHost := os.Getenv("REDIS_HOST"); redisHost != "" {
+		viper.Set("redis.host", redisHost)
 	}
-	if memcachedPort := os.Getenv("MEMCACHED_PORT"); memcachedPort != "" {
-		viper.Set("memcached.port", memcachedPort)
+	if redisPort := os.Getenv("REDIS_PORT"); redisPort != "" {
+		viper.Set("redis.port", redisPort)
+	}
+	if redisPassword := os.Getenv("REDIS_PASSWORD"); redisPassword != "" {
+		viper.Set("redis.password", redisPassword)
+	}
+	if redisDB := os.Getenv("REDIS_DB"); redisDB != "" {
+		viper.Set("redis.db", redisDB)
 	}
 	if enableFrontend := os.Getenv("ENABLE_FRONTEND"); enableFrontend != "" {
 		viper.Set("enable_frontend", enableFrontend == "true" || enableFrontend == "1")

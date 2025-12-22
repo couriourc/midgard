@@ -1,15 +1,15 @@
 # Midgard Gateway
 
-Midgard Gateway 是一个基于 Go、Traefik、Memcached 和 Vue 3 的网关代理管理工具。
+Midgard Gateway 是一个基于 Go、Traefik、Redis 和 Vue 3 的网关代理管理工具。
 
 ## 项目简介
-技术栈使用 go1.22.4(gin+gorm+ sqlite/postgres) +traefik +memcached + shadcn dashboard (vue3 vite + shadcn ) 的网关代理管理工具，具有以下功能：
+技术栈使用 go1.22.4(gin+gorm+ sqlite/postgres) +traefik +redis + shadcn dashboard (vue3 vite + shadcn ) 的网关代理管理工具，具有以下功能：
 
 1. 支持通过导入 openapi.json 或者提供 openapi.json 进行解析，生成一个 collection，一个collection相当于一组，可以设置代理的 endpoint。在 collection 中可以设置对外的网关前缀，这样就可以外部调用我的端口，我进行完整的代理转发，记录拦截外部的请求日志，并记录请求耗时。
 
 2. 支持多个 collection ，支持停用 collection 以及启用，从而控制是否能请求我对应的 collection 进行访问。
 
-3. 在 collection 中能配置，/health 的地址，来判断服务是否正常运行，并支持设置 collection 记录的方式为滚动记录，以及限制条目数目，并支持能够设置是否通过 memcached 来进行缓存，缓存的依据包括，json 化参数体等方式
+3. 在 collection 中能配置，/health 的地址，来判断服务是否正常运行，并支持设置 collection 记录的方式为滚动记录，以及限制条目数目，并支持能够设置是否通过 redis 来进行缓存，缓存的依据包括，json 化参数体等方式
 
 
 整体最后采用 docker 部署
@@ -25,7 +25,7 @@ Midgard Gateway 是一个基于 Go、Traefik、Memcached 和 Vue 3 的网关代�
    - 记录请求详细信息（路径、方法、状态码、耗时等）
    - 支持滚动日志和条目限制
 5. **缓存支持**：
-   - 通过 Memcached 缓存请求响应
+   - 通过 Redis 缓存请求响应
    - 可配置缓存策略（参数、请求体或全部）
 6. **Dashboard**：直观的 Web 界面管理所有功能
 
@@ -33,7 +33,7 @@ Midgard Gateway 是一个基于 Go、Traefik、Memcached 和 Vue 3 的网关代�
 
 - **后端**：Go 1.22.4
 - **API 网关**：Traefik
-- **缓存**：Memcached
+- **缓存**：Redis
 - **前端**：Vue 3 + Vite + Shadcn UI
 - **部署**：Docker
 
@@ -153,9 +153,11 @@ database:
   # password: postgres
   # dbname: midgard
 
-memcached:
+redis:
   host: localhost
-  port: 11211
+  port: 6379
+  password: ""
+  db: 0
 
 log:
   level: info

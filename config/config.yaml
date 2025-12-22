@@ -2,19 +2,21 @@ server:
   port: 8080
 
 database:
-  # type: sqlite
-  # dsn: midgard.db
+  #  type: sqlite
+  #  dsn: midgard.db
   # For PostgreSQL, use:
-  type: postgres
-  host: localhost
-  port: 5432
-  user: postgres
-  password: postgres
-  dbname: midgard
+ type: postgres
+ host: localhost
+ port: 5432
+ user: postgres
+ password: postgres
+ dbname: midgard
 
-memcached:
+redis:
   host: localhost
-  port: 11211
+  port: 6379
+  password: ""
+  db: 0
 
 log:
   level: info

@@ -5,7 +5,7 @@ help:
 	@echo "Midgard Gateway - 可用命令:"
 	@echo ""
 	@echo "  开发命令:"
-	@echo "    make dev          - 启动开发环境（包含 Memcached）"
+	@echo "    make dev          - 启动开发环境（包含 Redis）"
 	@echo "    make build        - 构建应用"
 	@echo "    make run          - 运行应用"
 	@echo "    make test         - 运行测试"
@@ -24,7 +24,7 @@ help:
 # 开发环境
 dev:
 	@echo "启动开发环境..."
-	docker-compose -f docker-compose.dev.yml up -d memcached
+	docker-compose -f docker-compose.dev.yml up -d redis
 	@echo "等待服务启动..."
 	sleep 2
 	@echo "启动应用..."

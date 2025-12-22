@@ -11,11 +11,13 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+
+	"context"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/memcachier/mc"
 	"github.com/midgard/gateway/internal/collection"
+	"github.com/redis/go-redis/v9"
 	"github.com/midgard/gateway/internal/database"
 	"github.com/midgard/gateway/internal/health"
 	"gorm.io/gorm"
@@ -25,17 +27,19 @@ import (
 type ProxyManager struct {
 	collectionManager *collection.CollectionManager
 	healthChecker     *health.HealthChecker
-	memcachedClient   *mc.Client
+	redisClient       *redis.Client
 	db                *gorm.DB
+	ctx               context.Context
 }
 
 // NewProxyManager creates a new proxy manager
-func NewProxyManager(cm *collection.CollectionManager, hc *health.HealthChecker, memcachedClient *mc.Client, db *gorm.DB) *ProxyManager {
+func NewProxyManager(cm *collection.CollectionManager, hc *health.HealthChecker, redisClient *redis.Client, db *gorm.DB) *ProxyManager {
 	return &ProxyManager{
 		collectionManager: cm,
 		healthChecker:     hc,
-		memcachedClient:   memcachedClient,
+		redisClient:       redisClient,
 		db:                db,
+		ctx:               context.Background(),
 	}
 }
 
@@ -82,10 +86,10 @@ func (pm *ProxyManager) HandleProxyRequest(c *gin.Context) {
 
 	// Generate cache key early (before body is consumed by proxy)
 	var cacheKey string
-	if coll.CacheEnabled && pm.memcachedClient != nil {
+	if coll.CacheEnabled && pm.redisClient != nil {
 		cacheKey = pm.generateCacheKey(coll.ID, c.Request, coll.CacheKeyStrategy, requestBody)
-		cachedData, _, _, err := pm.memcachedClient.Get(cacheKey)
-		if err != nil {
+		cachedData, err := pm.redisClient.Get(pm.ctx, cacheKey).Result()
+		if err != nil && err != redis.Nil {
 			log.Printf("Cache GET error for key %s: %v", cacheKey, err)
 		}
 		if err == nil && len(cachedData) > 0 {
@@ -113,7 +117,7 @@ func (pm *ProxyManager) HandleProxyRequest(c *gin.Context) {
 						pm.logRequest(coll.ID, path, c.Request.Method, targetURL, status, 0, len(requestBody), len(body), c.ClientIP(), c.Request.Header, c.Writer.Header(), coll.LogMaxEntries, coll.LogRolling, string(requestBody), string(requestParamsJSON), fromCache)
 					}
 					c.Data(status, "application/json", []byte(body))
-			return
+					return
 				}
 			}
 		}
@@ -164,7 +168,7 @@ func (pm *ProxyManager) HandleProxyRequest(c *gin.Context) {
 	}
 
 	// Cache the response if enabled
-	if coll.CacheEnabled && pm.memcachedClient != nil && responseRecorder.status == http.StatusOK {
+	if coll.CacheEnabled && pm.redisClient != nil && responseRecorder.status == http.StatusOK {
 		// Use the same cache key generated earlier
 		if cacheKey == "" {
 			cacheKey = pm.generateCacheKey(coll.ID, c.Request, coll.CacheKeyStrategy, requestBody)
@@ -175,7 +179,7 @@ func (pm *ProxyManager) HandleProxyRequest(c *gin.Context) {
 			"headers": responseRecorder.Header(),
 		}
 		if data, err := json.Marshal(responseData); err == nil {
-			_, err := pm.memcachedClient.Set(cacheKey, string(data), uint32(coll.CacheTTL), 0, 0)
+			err := pm.redisClient.Set(pm.ctx, cacheKey, string(data), time.Duration(coll.CacheTTL)*time.Second).Err()
 			if err != nil {
 				log.Printf("Failed to set cache for key %s: %v", cacheKey, err)
 			}

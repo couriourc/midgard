@@ -15,7 +15,7 @@ start.bat
 
 ## 方式二：使用 Makefile
 
-### 开发环境（包含 Memcached）
+### 开发环境（包含 Redis）
 ```bash
 make dev
 ```
@@ -51,13 +51,13 @@ cp env.example .env
 # 根据需要修改配置文件
 ```
 
-### 3. 启动 Memcached（可选，如果使用缓存）
+### 3. 启动 Redis（可选，如果使用缓存）
 ```bash
 # 使用 Docker
-docker-compose -f docker-compose.dev.yml up -d memcached
+docker-compose -f docker-compose.dev.yml up -d redis
 
-# 或使用本地安装的 Memcached
-memcached -d -m 64 -p 11211
+# 或使用本地安装的 Redis
+redis-server
 ```
 
 ### 4. 运行应用
@@ -77,7 +77,7 @@ go build -o midgard main.go
 docker-compose up -d
 ```
 
-### 仅启动依赖服务（Memcached、PostgreSQL）
+### 仅启动依赖服务（Redis、PostgreSQL）
 ```bash
 docker-compose -f docker-compose.dev.yml up -d
 ```
@@ -86,7 +86,7 @@ docker-compose -f docker-compose.dev.yml up -d
 
 - **端口**: 8080
 - **数据库**: SQLite (midgard.db)
-- **Memcached**: localhost:11211
+- **Redis**: localhost:6379
 - **前端**: 启用
 
 ## 环境变量
@@ -97,8 +97,10 @@ docker-compose -f docker-compose.dev.yml up -d
 export PORT=8080
 export DATABASE_TYPE=sqlite
 export DATABASE_DSN=midgard.db
-export MEMCACHED_HOST=localhost
-export MEMCACHED_PORT=11211
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
+export REDIS_PASSWORD=
+export REDIS_DB=0
 export ENABLE_FRONTEND=true
 ```
 
@@ -113,8 +115,8 @@ export ENABLE_FRONTEND=true
 ### 端口被占用
 修改 `config/config.yaml` 中的 `server.port` 或设置环境变量 `PORT`
 
-### Memcached 连接失败
-确保 Memcached 服务正在运行，或设置 `MEMCACHED_HOST=""` 禁用缓存
+### Redis 连接失败
+确保 Redis 服务正在运行，或设置 `REDIS_HOST=""` 禁用缓存
 
 ### 数据库锁定错误
 SQLite 在高并发下可能出现锁定，建议：

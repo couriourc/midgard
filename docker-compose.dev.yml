@@ -4,13 +4,16 @@ version: '3.8'
 # 使用: docker-compose -f docker-compose.dev.yml up
 
 services:
-  memcached:
-    image: memcached:1.6
-    container_name: midgard-memcached-dev
+  redis:
+    image: redis:7-alpine
+    container_name: midgard-redis-dev
     ports:
-      - "11211:11211"
+      - "6379:6379"
+    volumes:
+      - redis-data-dev:/data
     networks:
       - midgard-network
+    command: redis-server --appendonly yes
 
   postgres:
     image: postgres:15-alpine
@@ -30,6 +33,7 @@ services:
 
 volumes:
   postgres-data-dev:
+  redis-data-dev:
 
 networks:
   midgard-network:

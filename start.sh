@@ -34,8 +34,10 @@ fi
 export PORT=${PORT:-8080}
 export DATABASE_TYPE=${DATABASE_TYPE:-sqlite}
 export DATABASE_DSN=${DATABASE_DSN:-midgard.db}
-export MEMCACHED_HOST=${MEMCACHED_HOST:-localhost}
-export MEMCACHED_PORT=${MEMCACHED_PORT:-11211}
+export REDIS_HOST=${REDIS_HOST:-localhost}
+export REDIS_PORT=${REDIS_PORT:-6379}
+export REDIS_PASSWORD=${REDIS_PASSWORD:-}
+export REDIS_DB=${REDIS_DB:-0}
 export ENABLE_FRONTEND=${ENABLE_FRONTEND:-true}
 
 echo ""
@@ -43,7 +45,7 @@ echo "配置信息:"
 echo "  端口: $PORT"
 echo "  数据库类型: $DATABASE_TYPE"
 echo "  数据库 DSN: $DATABASE_DSN"
-echo "  Memcached: $MEMCACHED_HOST:$MEMCACHED_PORT"
+echo "  Redis: $REDIS_HOST:$REDIS_PORT"
 echo "  前端启用: $ENABLE_FRONTEND"
 echo ""
 

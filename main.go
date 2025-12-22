@@ -1,13 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"time"
 
-	"github.com/memcachier/mc"
 	"github.com/midgard/gateway/config"
+	"github.com/redis/go-redis/v9"
 	"github.com/midgard/gateway/internal/api"
 	"github.com/midgard/gateway/internal/collection"
 	"github.com/midgard/gateway/internal/database"
@@ -27,29 +29,34 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
-	// Initialize memcached client
-	var memcachedClient *mc.Client
-	if cfg.Memcached.Host != "" {
-		serverAddr := fmt.Sprintf("%s:%d", cfg.Memcached.Host, cfg.Memcached.Port)
-		memcachedClient = mc.NewMC(serverAddr, "", "")
-		log.Printf("Memcached client initialized for %s", serverAddr)
+	// Initialize Redis client
+	var redisClient *redis.Client
+	if cfg.Redis.Host != "" {
+		redisClient = redis.NewClient(&redis.Options{
+			Addr:     fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
+			Password: cfg.Redis.Password,
+			DB:       cfg.Redis.DB,
+		})
+		log.Printf("Redis client initialized for %s:%d", cfg.Redis.Host, cfg.Redis.Port)
 		
 		// Test connection
+		ctx := context.Background()
 		testKey := "midgard:test:connection"
 		testValue := "test"
-		_, err := memcachedClient.Set(testKey, testValue, 10, 0, 0)
+		err := redisClient.Set(ctx, testKey, testValue, 10*time.Second).Err()
 		if err != nil {
-			log.Printf("Warning: Failed to set test key in Memcached: %v", err)
+			log.Printf("Warning: Failed to set test key in Redis: %v", err)
 		} else {
-			if val, _, _, err := memcachedClient.Get(testKey); err == nil && val == testValue {
-				log.Printf("Memcached connection test successful")
+			val, err := redisClient.Get(ctx, testKey).Result()
+			if err == nil && val == testValue {
+				log.Printf("Redis connection test successful")
 				// Test key will expire automatically after 10 seconds
 			} else {
-				log.Printf("Warning: Memcached connection test failed: %v", err)
+				log.Printf("Warning: Redis connection test failed: %v", err)
 			}
 		}
 	} else {
-		log.Println("Memcached not configured (host is empty)")
+		log.Println("Redis not configured (host is empty)")
 	}
 
 	// Initialize collection manager
@@ -69,7 +76,7 @@ func main() {
 	}
 
 	// Initialize proxy manager
-	proxyManager := proxy.NewProxyManager(collectionManager, healthChecker, memcachedClient, db)
+	proxyManager := proxy.NewProxyManager(collectionManager, healthChecker, redisClient, db)
 
 	// Check if frontend is enabled (from environment variable or config)
 	enableFrontend := cfg.EnableFrontend

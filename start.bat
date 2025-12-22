@@ -26,8 +26,10 @@ REM 设置默认环境变量
 if "%PORT%"=="" set PORT=8080
 if "%DATABASE_TYPE%"=="" set DATABASE_TYPE=sqlite
 if "%DATABASE_DSN%"=="" set DATABASE_DSN=midgard.db
-if "%MEMCACHED_HOST%"=="" set MEMCACHED_HOST=localhost
-if "%MEMCACHED_PORT%"=="" set MEMCACHED_PORT=11211
+if "%REDIS_HOST%"=="" set REDIS_HOST=localhost
+if "%REDIS_PORT%"=="" set REDIS_PORT=6379
+if "%REDIS_PASSWORD%"=="" set REDIS_PASSWORD=
+if "%REDIS_DB%"=="" set REDIS_DB=0
 if "%ENABLE_FRONTEND%"=="" set ENABLE_FRONTEND=true
 
 echo.
@@ -35,7 +37,7 @@ echo 配置信息:
 echo   端口: %PORT%
 echo   数据库类型: %DATABASE_TYPE%
 echo   数据库 DSN: %DATABASE_DSN%
-echo   Memcached: %MEMCACHED_HOST%:%MEMCACHED_PORT%
+echo   Redis: %REDIS_HOST%:%REDIS_PORT%
 echo   前端启用: %ENABLE_FRONTEND%
 echo.
 
