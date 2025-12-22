@@ -16,6 +16,7 @@
       </button>
       <div class="flex flex-1 items-center justify-end space-x-4">
         <div class="flex items-center space-x-2">
+          <img src="/midgard.png" alt="Midgard Gateway" class="h-6 w-auto object-contain" />
           <span class="text-sm text-muted-foreground">Midgard Gateway</span>
         </div>
       </div>

@@ -7,9 +7,11 @@
   >
     <div class="flex flex-col flex-grow border-r border-border bg-background">
       <div class="flex items-center flex-shrink-0 h-16 border-b border-border" :class="collapsed ? 'px-2 justify-center' : 'px-4'">
-        <h1 v-if="!collapsed" class="text-xl font-bold whitespace-nowrap">Midgard Gateway</h1>
+        <div v-if="!collapsed" class="flex items-center space-x-3">
+          <h1 class="text-xl font-bold whitespace-nowrap">Midgard Gateway</h1>
+        </div>
         <div v-else class="flex items-center justify-center w-full">
-          <span class="text-lg font-bold">MG</span>
+          <img src="/midgard.png" alt="MG" class="h-8 w-auto object-contain" />
         </div>
       </div>
       <nav class="flex-1 py-4 space-y-1 overflow-y-auto" :class="collapsed ? 'px-2' : 'px-2'">
@@ -151,7 +153,7 @@
           <div>
             <h3 class="text-lg font-semibold mb-2">项目简介</h3>
             <p class="text-sm text-muted-foreground">
-              Midgard Gateway 是一个基于 Go、Traefik、Memcached 和 Vue 3 的网关代理管理工具。
+              Midgard Gateway 是一个基于 Go、Traefik、Redis 和 Vue 3 的网关代理管理工具。
               支持通过导入 OpenAPI 规范自动生成代理端点，并提供完整的请求日志、健康检查和缓存功能。
             </p>
           </div>
@@ -194,7 +196,7 @@
               <div>
                 <h4 class="font-medium mb-1">4. 缓存支持</h4>
                 <p class="text-muted-foreground">
-                  通过 Memcached 缓存请求响应，可配置缓存策略（基于参数、请求体或全部）。
+                  通过 Redis 缓存请求响应，可配置缓存策略（基于参数、请求体或全部）。
                   缓存命中时会显著提升响应速度。
                 </p>
               </div>
@@ -232,7 +234,7 @@
               <li>Prefix 不能包含 '/' 字符，系统会自动替换为 '-'</li>
               <li>确保目标服务的 Base URL 正确配置</li>
               <li>健康检查路径是可选的，但建议配置以确保服务可用性</li>
-              <li>缓存功能需要 Memcached 服务正常运行</li>
+              <li>缓存功能需要 Redis 服务正常运行</li>
             </ul>
           </div>
         </div>

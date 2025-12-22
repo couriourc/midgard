@@ -11,7 +11,8 @@
           >
             <Menu class="h-6 w-6" />
           </button>
-          <div class="flex flex-1 items-center justify-center">
+          <div class="flex flex-1 items-center justify-center space-x-2">
+            <img src="/midgard.png" alt="Midgard Gateway" class="h-6 w-auto object-contain" />
             <span class="text-sm font-medium">Midgard Gateway</span>
           </div>
         </div>
@@ -30,7 +31,10 @@
       <div class="fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border">
         <div class="flex flex-col h-full">
           <div class="flex items-center justify-between px-4 h-16 border-b border-border">
-            <h1 class="text-xl font-bold">Midgard Gateway</h1>
+            <div class="flex items-center space-x-2">
+              <img src="/midgard.png" alt="Midgard Gateway" class="h-8 w-auto object-contain" />
+              <h1 class="text-xl font-bold">Midgard Gateway</h1>
+            </div>
             <button
               class="p-2 rounded-md hover:bg-accent"
               @click="sidebarOpen = false"

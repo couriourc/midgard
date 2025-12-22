@@ -535,7 +535,7 @@ const fetchEndpointStats = async () => {
 }
 
 const getEndpointStat = (path, method) => {
-  return endpointStats.value.find(stat => stat.path === path && stat.method === method)
+  return endpointStats.value?.find(stat => stat.path === path && stat.method === method)
 }
 
 const fetchLogs = async () => {
