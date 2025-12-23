@@ -123,10 +123,18 @@ const getStatusVariant = (status) => {
 const fetchLogs = async () => {
   try {
     loading.value = true
-    const response = await axios.get("/api/logs?limit=100")
-    requestLogs.value = response.data
+    const response = await axios.get("/api/logs?page=1&pageSize=100")
+    
+    // 处理分页响应格式
+    if (response.data.data) {
+      requestLogs.value = response.data.data
+    } else {
+      // 兼容旧格式
+      requestLogs.value = response.data
+    }
   } catch (error) {
     console.error("Failed to fetch logs:", error)
+    toast.error("获取日志失败", error.response?.data?.error || error.message)
   } finally {
     loading.value = false
   }
@@ -134,10 +142,10 @@ const fetchLogs = async () => {
 
 const clearLogs = async () => {
   const confirmed = await confirm({
-    title: "Clear All Logs",
-    description: "Are you sure you want to clear all logs? This action cannot be undone.",
-    confirmText: "Clear",
-    cancelText: "Cancel",
+    title: "清空所有日志",
+    description: "确定要清空所有日志吗？此操作无法撤销。",
+    confirmText: "清空",
+    cancelText: "取消",
     confirmVariant: "destructive",
   })
   
@@ -145,10 +153,12 @@ const clearLogs = async () => {
     try {
       await axios.delete("/api/logs")
       requestLogs.value = []
-      toast.success("Logs cleared", "All logs have been cleared successfully")
+      toast.success("日志已清空", "所有日志已成功清空")
+      // 重新获取日志列表（虽然应该是空的）
+      await fetchLogs()
     } catch (error) {
       console.error("Failed to clear logs:", error)
-      toast.error("Failed to clear logs", error.message)
+      toast.error("清空日志失败", error.response?.data?.error || error.message)
     }
   }
 }

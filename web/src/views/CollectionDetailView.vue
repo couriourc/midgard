@@ -143,9 +143,14 @@
         <CardHeader>
           <div class="flex items-center justify-between">
             <CardTitle>Request Logs</CardTitle>
-            <Button variant="ghost" size="sm" @click="fetchLogs">
-              <RefreshCw class="h-4 w-4" />
-            </Button>
+            <div class="flex items-center space-x-2">
+              <Button variant="ghost" size="sm" @click="fetchLogs">
+                <RefreshCw class="h-4 w-4" />
+              </Button>
+              <Button variant="destructive" size="sm" @click="clearCollectionLogs">
+                <Trash2 class="h-4 w-4" />
+              </Button>
+            </div>
       </div>
         </CardHeader>
         <CardContent>
@@ -351,6 +356,18 @@
         </CardContent>
       </Card>
     </div>
+
+    <!-- Confirm Dialog -->
+    <AlertDialog
+      v-model="showDialog"
+      :title="dialogConfig.title"
+      :description="dialogConfig.description"
+      :confirm-text="dialogConfig.confirmText"
+      :cancel-text="dialogConfig.cancelText"
+      :confirm-variant="dialogConfig.confirmVariant"
+      @confirm="handleConfirm"
+      @cancel="handleCancel"
+    />
   </div>
 </template>
 
@@ -359,7 +376,7 @@ import { ref, computed, onMounted, onUnmounted } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import axios from "axios"
 import { pinyin } from "pinyin-pro"
-import { Edit, Upload, RefreshCw, Copy } from "lucide-vue-next"
+import { Edit, Upload, RefreshCw, Copy, Trash2 } from "lucide-vue-next"
 import Card from "@/components/ui/card.vue"
 import CardHeader from "@/components/ui/card-header.vue"
 import CardTitle from "@/components/ui/card-title.vue"
@@ -373,6 +390,8 @@ import TabsList from "@/components/ui/tabs-list.vue"
 import TabsTrigger from "@/components/ui/tabs-trigger.vue"
 import TabsContent from "@/components/ui/tabs-content.vue"
 import { useToast } from "@/composables/useToast"
+import { useConfirm } from "@/composables/useConfirm"
+import AlertDialog from "@/components/ui/alert-dialog.vue"
 
 const route = useRoute()
 const router = useRouter()
@@ -385,6 +404,7 @@ const showEditModal = ref(false)
 const showImportModal = ref(false)
 const editTab = ref("basic")
 const { toast } = useToast()
+const { showDialog, dialogConfig, confirm, handleConfirm, handleCancel } = useConfirm()
 
 const proxyUrl = computed(() => {
   if (!collection.value) return ""
@@ -544,6 +564,30 @@ const fetchLogs = async () => {
     logs.value = response.data
   } catch (error) {
     console.error("Failed to fetch logs:", error)
+    toast.error("获取日志失败", error.response?.data?.error || error.message)
+  }
+}
+
+const clearCollectionLogs = async () => {
+  const confirmed = await confirm({
+    title: "清空集合日志",
+    description: `确定要清空集合 "${collection.value?.name || route.params.id}" 的所有日志吗？此操作无法撤销。`,
+    confirmText: "清空",
+    cancelText: "取消",
+    confirmVariant: "destructive",
+  })
+  
+  if (confirmed) {
+    try {
+      await axios.delete(`/api/logs/${route.params.id}`)
+      logs.value = []
+      toast.success("日志已清空", "该集合的所有日志已成功清空")
+      // 重新获取日志列表（虽然应该是空的）
+      await fetchLogs()
+    } catch (error) {
+      console.error("Failed to clear collection logs:", error)
+      toast.error("清空日志失败", error.response?.data?.error || error.message)
+    }
   }
 }
 
